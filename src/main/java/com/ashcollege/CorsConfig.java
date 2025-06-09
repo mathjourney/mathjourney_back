@@ -1,22 +1,31 @@
 package com.ashcollege;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
 
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins(
-                        "http://localhost:8080",   // Expo‑web בדרך‑כלל
-                        "http://localhost:8081",   // אם את על 8081
-                        "http://localhost:19006",  // Expo‑Go
-                        "https://math-journey-front.onrender.com"
-                ).allowedMethods("GET","POST","PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("Authorization", "Content-Type").exposedHeaders("Authorization")
-                .allowCredentials(false);      // לא עובדים עם קוקיז – אפשר false
+public class CorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList(
+                "http://localhost:8080",   // Expo-web
+                "http://localhost:8081",   // local
+                "http://localhost:19006",  // Expo Go
+                "https://mathjourney-front.onrender.com"
+        ));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        config.setExposedHeaders(Arrays.asList("Authorization"));
+        config.setAllowCredentials(false); // לא משתמשות בקוקיז
 
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 }
