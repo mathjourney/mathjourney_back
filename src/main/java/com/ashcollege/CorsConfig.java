@@ -7,26 +7,22 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // ✅ אפשר גם במקום setAllowedOrigins להשתמש ב־setAllowedOriginPatterns
-        config.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",
-                "https://mathjourney-front.onrender.com"
-        ));
-
+        config.setAllowedOriginPatterns(List.of("*")); // השתמשי בזה אם את רוצה לפתור את זה זמנית
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setExposedHeaders(Arrays.asList("Authorization"));
-        config.setAllowCredentials(false);  // או true אם אי פעם תשתמשי בקוקיז / login-session
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(true); // אם את שומרת Token בצד הלקוח
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
+
 }
