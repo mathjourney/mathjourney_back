@@ -153,31 +153,32 @@ public class ExerciseService {
 
     private int[] generateUniqueAnswers(int correctAnswer) {
         Set<Integer> uniqueAnswers = new HashSet<>();
-        uniqueAnswers.add(correctAnswer);
+        uniqueAnswers.add(correctAnswer); // תמיד מוסיפים את התשובה הנכונה
 
-        // מגבלה למניעת לולאה אין־סופית
         int attempts = 0;
 
         // כל עוד צריך עוד תשובות, וניסינו פחות מ-100 פעמים
         while (uniqueAnswers.size() < 4 && attempts < 100) {
-            // offset בטווח -5 עד +5
-            int offset = rand.nextInt(11) - 5;
+            int offset = rand.nextInt(11) - 5; // טווח של -5 עד +5
             int candidate = correctAnswer + offset;
-            if (candidate < 1) continue;
+
+            // רק נוודא שהוא לא שלילי – מותר להיות 0!
+            if (candidate < 0) continue;
 
             uniqueAnswers.add(candidate);
             attempts++;
         }
 
-        // אם במקרה לא הגענו ל-4 תשובות (מאוד נדיר), יש לנו fallback:
-        // אפשר לבדוק אם הגענו לפחות ל-4, ואם לא - להמשיך לייצר באופן אחר או להחזיר את מה שיש
+        // אם לא הצלחנו לייצר 4 תשובות שונות (מאוד נדיר) – נוסיף תשובות אקראיות
+        while (uniqueAnswers.size() < 4) {
+            uniqueAnswers.add(rand.nextInt(20)); // טווח רזרבי
+        }
 
         int[] arr = uniqueAnswers.stream()
                 .mapToInt(Integer::intValue)
                 .toArray();
 
-        // ערבוב סדר התשובות
-        shuffleArray(arr);
+        shuffleArray(arr); // ערבוב
 
         return arr;
     }
@@ -185,13 +186,15 @@ public class ExerciseService {
     private Map<String, Object> generateBasicArithmetic(String sign, int level) {
         int a = 0, b = 0, correct = 0;
         boolean valid = false;
+        int attempts = 0;
 
         if (sign.equals("÷")) {
             int maxA = level <= 5 ? level * 10 : 50 + (level - 5) * 50;
             int maxResult = level <= 5 ? 4 + level : 10 + (level - 5) * 2;
             int minA = Math.max(4, maxA / 5);
 
-            while (!valid) {
+            while (!valid && attempts < 100) {
+                attempts++;
                 a = rand.nextInt(maxA - minA + 1) + minA;
 
                 List<Integer> goodDivisors = new ArrayList<>();
@@ -210,54 +213,56 @@ public class ExerciseService {
                     valid = true;
                 }
             }
-        }
-        else {
+        } else {
             int minVal = (level - 1) * 5;
             int maxVal = level * 5;
 
-            while (!valid) {
-                a = rand.nextInt(maxVal - minVal + 1) + minVal;
-                b = rand.nextInt(maxVal - minVal + 1) + minVal;
+            while (!valid && attempts < 100) {
+                attempts++;
 
-                switch (sign) {
-                    case "+":
-                        correct = a + b;
+                if (sign.equals("-")) {
+                    int minDifference = switch (level) {
+                        case 1, 2 -> 3;
+                        case 3, 4 -> 6;
+                        case 5, 6 -> 10;
+                        default -> 20;
+                    };
+
+                    int maxValSub = level * 10;
+                    int minValSub = Math.max(2, level * 2);
+
+                    b = rand.nextInt(maxValSub / 2 - minValSub + 1) + minValSub;
+                    a = b + minDifference + rand.nextInt(maxValSub / 2);
+                    correct = a - b;
+
+                    if (correct >= 0) {
                         valid = true;
-                        break;
-                    case "-":
-                        int minDifference;
-                        if (level <= 2) {
-                            minDifference = 3; // רמות קלות - פער קטן
-                        } else if (level <= 4) {
-                            minDifference = 6; // רמות בינוניות - פער בינוני
-                        } else if (level <= 6) {
-                            minDifference = 10;
-                        } else {
-                            minDifference = 20; // רמות גבוהות - פער גדול
-                        }
+                    }
 
-                        int maxValSub = level * 10;
-                        int minValSub = Math.max(2, level * 2);
+                } else {
+                    a = rand.nextInt(maxVal - minVal + 1) + minVal;
+                    b = rand.nextInt(maxVal - minVal + 1) + minVal;
 
-                        b = rand.nextInt(maxValSub / 2 - minValSub + 1) + minValSub;
-                        a = b + minDifference + rand.nextInt(maxValSub / 2);
-
-                        correct = a - b;
-                        valid = true;
-                        break;
-
-
-                    case "×":
-                        correct = a * b;
-                        valid = true;
-                        break;
+                    switch (sign) {
+                        case "+" -> correct = a + b;
+                        case "×" -> correct = a * b;
+                    }
+                    valid = true;
                 }
             }
         }
 
-        int[] answers = generateUniqueAnswers(correct);
-        Map<String, Object> q = new HashMap<>();
+        if (!valid) {
+            throw new RuntimeException("ניסיון ליצור שאלה נכשל לאחר 100 ניסיונות (פעולה: " + sign + ", רמה: " + level + ")");
+        }
 
+        int[] answers = generateUniqueAnswers(correct);
+        boolean allNegative = Arrays.stream(answers).allMatch(x -> x < 0);
+        if (allNegative) {
+            return generateBasicArithmetic(sign, level); // נסיון נוסף עם רקורסיה רק אם הכל שלילי
+        }
+
+        Map<String, Object> q = new HashMap<>();
         q.put("first", Math.max(a, b));
         q.put("second", Math.min(a, b));
         q.put("operationSign", sign);
