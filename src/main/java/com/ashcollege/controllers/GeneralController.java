@@ -60,9 +60,17 @@ public class GeneralController {
             String rawPass = body.get("password");
 
             UserEntity user = userService.findByMail(mail);
-            if (user == null || !passwordEncoder.matches(rawPass, user.getPassword())) {
-                return errorResponse("אימייל או סיסמה שגויים", HttpStatus.UNAUTHORIZED);
+
+// בדיקה אם המייל לא קיים
+            if (user == null) {
+                return errorResponse("אימייל לא קיים במערכת", HttpStatus.NOT_FOUND);
             }
+
+// בדיקה אם הסיסמה שגויה
+            if (!passwordEncoder.matches(rawPass, user.getPassword())) {
+                return errorResponse("סיסמה שגויה", HttpStatus.UNAUTHORIZED);
+            }
+
 
             // שימוש נכון עם BASE64:
             byte[] keyBytes = Decoders.BASE64.decode(secret);
