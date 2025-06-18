@@ -69,28 +69,15 @@ public class ExerciseController {
         userService.incrementTotalExercises(user.getId());
         exerciseService.incrementAttempt(user.getId(), topicId);
 
-        String levelUpMsg = null;
-        if (correct) {
-            user.setCorrectStreak(user.getCorrectStreak() + 1);
-            if (user.getCorrectStreak() >= 5) {
-                exerciseService.increaseUserTopicLevel(user.getId(), topicId);
-                user.setCorrectStreak(0);
-                levelUpMsg = "מעולה! עלית רמה!";
-            }
-        } else {
-            userService.incrementTotalMistakes(user.getId());
-            exerciseService.incrementTopicMistakes(user.getId(), topicId);
-            user.setCorrectStreak(0);
-        }
-        userService.updateUser(user);
+        String levelUpMsg = exerciseService.updateStreaksAndLevel(user.getId(), topicId, correct);
 
         Map<String, Object> resp = new HashMap<>();
         resp.put("isCorrect", correct);
         resp.put("correctAnswer", q.get("correctAnswer"));
         resp.put("currentLevel",
                 exerciseService.getUserTopicLevel(user.getId(), topicId));
-        if (levelUpMsg != null) resp.put("levelUpMessage", levelUpMsg);
-
+        if (levelUpMsg != null)
+            resp.put("levelChangeMessage", levelUpMsg);
         return ResponseEntity.ok(resp);
     }
 

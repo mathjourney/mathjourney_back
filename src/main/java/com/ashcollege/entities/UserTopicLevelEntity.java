@@ -18,6 +18,13 @@ public class UserTopicLevelEntity {
     private int attempts; // ספירת ניסיונות (חדש)
 
 
+    @Column(name = "correct_streak")
+    private int correctStreak;
+
+    @Column(name = "consecutive_mistakes")
+    private int consecutiveMistakes;
+
+
     public UserTopicLevelEntity() {
     }
 
@@ -60,5 +67,21 @@ public class UserTopicLevelEntity {
     }
     public void setAttempts(int attempts) {
         this.attempts = attempts;
+    }
+
+    public int getCorrectStreak() {
+        return correctStreak;
+    }
+
+    public void setCorrectStreak(int correctStreak) {
+        this.correctStreak = correctStreak;
+    }
+
+    public int getConsecutiveMistakes() {
+        return consecutiveMistakes;
+    }
+
+    public void setConsecutiveMistakes(int consecutiveMistakes) {
+        this.consecutiveMistakes = consecutiveMistakes;
     }
 }

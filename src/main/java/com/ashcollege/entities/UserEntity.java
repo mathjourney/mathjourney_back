@@ -19,9 +19,6 @@ public class UserEntity {
     private int totalMistakes = 0;
     private int level;
 
-    @Column(name = "correct_streak") // ✅ החלק שהופך את זה לעובד!
-    private int correctStreak = 0;
-
     @Column(name = "detailed_solutions")
     private boolean detailedSolutions = true;
 
@@ -87,12 +84,6 @@ public class UserEntity {
         this.level = level;
     }
 
-    public int getCorrectStreak() {
-        return correctStreak;
-    }
-    public void setCorrectStreak(int correctStreak) {
-        this.correctStreak = correctStreak;
-    }
 
     public boolean isDetailedSolutions() {
         return detailedSolutions;
@@ -116,7 +107,6 @@ public class UserEntity {
                 ", level=" + level +
                 ", totalExercises=" + totalExercises +
                 ", totalMistakes=" + totalMistakes +
-                ", correctStreak=" + correctStreak +
                 '}';
     }
 }

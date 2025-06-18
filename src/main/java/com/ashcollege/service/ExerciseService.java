@@ -211,6 +211,37 @@ public class ExerciseService {
         }
     }
 
+    public String updateStreaksAndLevel(int userId, int topicId, boolean correct) {
+        UserTopicLevelEntity rec = userTopicLevelRepo.findByUserIdAndTopicId(userId, topicId);
+        if (rec == null) return null;
+
+        if (correct) {
+            rec.setCorrectStreak(rec.getCorrectStreak() + 1);
+            rec.setConsecutiveMistakes(0);
+
+            if (rec.getCorrectStreak() >= 5) {
+                rec.setLevel(rec.getLevel() + 1);
+                rec.setCorrectStreak(0);
+                userTopicLevelRepo.save(rec);
+                updateGeneralLevel(userId);
+                return "כל הכבוד! עלית רמה!";
+            }
+        } else {
+            rec.setConsecutiveMistakes(rec.getConsecutiveMistakes() + 1);
+            rec.setCorrectStreak(0);
+
+            if (rec.getConsecutiveMistakes() >= 8 && rec.getLevel() > 1) {
+                rec.setLevel(rec.getLevel() - 1);
+                rec.setConsecutiveMistakes(0);
+                userTopicLevelRepo.save(rec);
+                updateGeneralLevel(userId);
+                return "ירדת רמה, אל תתייאשי!";
+            }
+        }
+
+        userTopicLevelRepo.save(rec);
+        return null;
+    }
     private Map<String, Object> generateFractionQuestion(String sign, int level) {
         level = Math.max(1, level);
         int[] frac = createFractionPair(level);
