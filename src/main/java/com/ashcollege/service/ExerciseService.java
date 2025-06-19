@@ -88,25 +88,42 @@ public class ExerciseService {
         }
     }
 
-    public int getUserTopicLevel(int userId, int topicId) {
-        UserTopicLevelEntity rec = userTopicLevelRepo.findByUserIdAndTopicId(userId, topicId);
-        return rec == null ? 1 : Math.max(1, rec.getLevel());
-    }
-
     public void updateGeneralLevel(int userId) {
         List<UserTopicLevelEntity> levels = userTopicLevelRepo.findByUserId(userId);
         if (levels.isEmpty()) return;
 
-        int min = levels.stream()
+        // מסננים רק נושאים שהתחילו בהם (level > 0)
+        List<UserTopicLevelEntity> progressed = levels.stream()
                 .filter(l -> l.getLevel() > 0)
-                .mapToInt(UserTopicLevelEntity::getLevel)
-                .min()
-                .orElse(1);
+                .toList();
 
-        userRepo.findById(userId).ifPresent(u -> {
-            u.setLevel(min);
-            userRepo.save(u);
+        if (progressed.isEmpty()) {
+            userRepo.findById(userId).ifPresent(user -> {
+                user.setLevel(0);
+                userRepo.save(user);
+            });
+            return;
+        }
+
+        // חישוב ממוצע הרמות
+        double avg = progressed.stream()
+                .mapToInt(UserTopicLevelEntity::getLevel)
+                .average()
+                .orElse(0);
+
+        int avgRounded = (int) Math.round(avg); // נעגל למספר שלם
+
+        userRepo.findById(userId).ifPresent(user -> {
+            user.setLevel(avgRounded);
+            userRepo.save(user);
         });
+
+        System.out.println("🟣 GENERAL LEVEL CALCULATED (AVG): " + avgRounded);
+    }
+
+    public int getUserTopicLevel(int userId, int topicId) {
+        UserTopicLevelEntity rec = userTopicLevelRepo.findByUserIdAndTopicId(userId, topicId);
+        return rec == null ? 1 : Math.max(1, rec.getLevel());
     }
 
     private Map<String, Object> generateBasicArithmetic(String sign, int level) {
@@ -224,18 +241,24 @@ public class ExerciseService {
                 rec.setCorrectStreak(0);
                 userTopicLevelRepo.save(rec);
                 updateGeneralLevel(userId);
-                return "כל הכבוד! עלית רמה!";
+                return "תותח! עלית לרמה " + rec.getLevel() + "!";
             }
         } else {
             rec.setConsecutiveMistakes(rec.getConsecutiveMistakes() + 1);
             rec.setCorrectStreak(0);
 
-            if (rec.getConsecutiveMistakes() >= 8 && rec.getLevel() > 1) {
-                rec.setLevel(rec.getLevel() - 1);
+            if (rec.getConsecutiveMistakes() >= 8) {
                 rec.setConsecutiveMistakes(0);
-                userTopicLevelRepo.save(rec);
-                updateGeneralLevel(userId);
-                return "ירדת רמה, אל תתייאשי!";
+
+                if (rec.getLevel() > 1) {
+                    rec.setLevel(rec.getLevel() - 1);
+                    userTopicLevelRepo.save(rec);
+                    updateGeneralLevel(userId);
+                    return "ירדת לרמה " + rec.getLevel() + ", אל תתייאשי!";
+                } else {
+                    userTopicLevelRepo.save(rec);
+                    return "המשיכי לנסות, את עדיין ברמה 1 💪";
+                }
             }
         }
 

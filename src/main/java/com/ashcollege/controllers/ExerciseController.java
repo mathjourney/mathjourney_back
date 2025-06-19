@@ -71,6 +71,10 @@ public class ExerciseController {
 
         String levelUpMsg = exerciseService.updateStreaksAndLevel(user.getId(), topicId, correct);
 
+        if (!correct) {
+            userService.incrementTotalMistakes(user.getId());
+        }
+
         Map<String, Object> resp = new HashMap<>();
         resp.put("isCorrect", correct);
         resp.put("correctAnswer", q.get("correctAnswer"));
