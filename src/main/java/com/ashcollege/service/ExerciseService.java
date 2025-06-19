@@ -57,16 +57,6 @@ public class ExerciseService {
         return question;
     }
 
-    public void increaseUserTopicLevel(int userId, int topicId) {
-        UserTopicLevelEntity rec = userTopicLevelRepo.findByUserIdAndTopicId(userId, topicId);
-        if (rec != null) {
-            int old = rec.getLevel();
-            rec.setLevel(old + 1);
-            userTopicLevelRepo.save(rec);
-            logger.info("User {} topic {} ⇒ level {} → {}", userId, topicId, old, rec.getLevel());
-            updateGeneralLevel(userId);
-        }
-    }
 
     public boolean checkAnswer(Map<String, Object> q, int userAnswer) {
         return userAnswer == (int) q.get("correctAnswer");

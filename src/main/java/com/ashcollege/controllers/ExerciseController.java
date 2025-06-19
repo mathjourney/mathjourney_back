@@ -73,6 +73,8 @@ public class ExerciseController {
 
         if (!correct) {
             userService.incrementTotalMistakes(user.getId());
+            exerciseService.incrementTopicMistakes(user.getId(), topicId); // ✅ הוסיפי את זה
+
         }
 
         Map<String, Object> resp = new HashMap<>();
