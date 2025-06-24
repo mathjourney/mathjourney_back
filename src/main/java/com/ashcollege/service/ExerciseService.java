@@ -28,7 +28,7 @@ public class ExerciseService {
 
         UserTopicLevelEntity ute = userTopicLevelRepo.findByUserIdAndTopicId(user.getId(), topicId);
         if (ute == null) {
-            ute = new UserTopicLevelEntity();
+            ute = new UserTopicLevelEntity(user.getId(), topicId, 0, 0, 1); // level 1
             ute.setUserId(user.getId());
             ute.setTopicId(topicId);
             ute.setLevel(1);
@@ -278,8 +278,14 @@ public class ExerciseService {
         int num = 0, den = 0;
         switch (sign) {
             case "+" -> {
-                num = a * d + b * c;
-                den = b * d;
+                if (sameDenominator) {
+                    num = a + c;
+                    den = b;
+                } else {
+                    num = a * d + b * c;
+                    den = b * d;
+                }
+
             }
             case "-" ->{
                 if (sameDenominator) {

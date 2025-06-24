@@ -24,6 +24,13 @@ public class UserTopicLevelEntity {
     @Column(name = "consecutive_mistakes")
     private int consecutiveMistakes;
 
+    public UserTopicLevelEntity(int userId, int topicId, int level, int mistakes, int attempts) {
+        this.userId = userId;
+        this.topicId = topicId;
+        this.level = level;
+        this.mistakes = mistakes;
+        this.attempts = attempts;
+    }
 
     public UserTopicLevelEntity() {
     }

@@ -30,6 +30,9 @@ public class ExerciseController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/next")
     public ResponseEntity<Map<String, Object>> getNextQuestion(@RequestParam int topicId) {
+        if (topicId <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "topicId לא תקין"));
+        }
         UserEntity user = userService.getCurrentUser();
         if (user == null)
             return ResponseEntity.status(404).body(Map.of("error", "User not found"));
