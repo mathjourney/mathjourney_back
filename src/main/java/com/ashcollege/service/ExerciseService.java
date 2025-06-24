@@ -59,8 +59,20 @@ public class ExerciseService {
 
 
     public boolean checkAnswer(Map<String, Object> q, int userAnswer) {
-        return userAnswer == (int) q.get("correctAnswer");
+        int correct = (int) q.get("correctAnswer");
+
+        // אם זה שבר (מקודד כ־a*1000 + b)
+        if (correct >= 1000 || userAnswer >= 1000) {
+            int num1 = correct / 1000;
+            int den1 = correct % 1000;
+            int num2 = userAnswer / 1000;
+            int den2 = userAnswer % 1000;
+            return num1 * den2 == num2 * den1;
+        }
+
+        return userAnswer == correct;
     }
+
 
     public void incrementTopicMistakes(int userId, int topicId) {
         UserTopicLevelEntity rec = userTopicLevelRepo.findByUserIdAndTopicId(userId, topicId);
@@ -259,6 +271,7 @@ public class ExerciseService {
         level = Math.max(1, level);
         int[] frac = createFractionPair(level);
         int a = frac[0], b = frac[1], c = frac[2], d = frac[3];
+        boolean sameDenominator = (b == d);
 
         if (sign.equals("-") && (a * d < c * b)) return generateFractionQuestion(sign, level);
 
@@ -268,10 +281,15 @@ public class ExerciseService {
                 num = a * d + b * c;
                 den = b * d;
             }
-            case "-" -> {
-                num = a * d - b * c;
-                den = b * d;
-            }
+            case "-" ->{
+                if (sameDenominator) {
+                    num = a - c;
+                    den = b;
+                } else {
+                    num = a * d - b * c;
+                    den = b * d;
+                }}
+
             case "×" -> {
                 num = a * c;
                 den = b * d;
