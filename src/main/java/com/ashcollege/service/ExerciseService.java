@@ -59,7 +59,7 @@ public class ExerciseService {
 
 
     public boolean checkAnswer(Map<String, Object> q, int userAnswer) {
-        int correct = (int) q.get("correctAnswer");
+        int correct = ((Number) q.get("correctAnswer")).intValue();
 
         // אם זה שבר (מקודד כ־a*1000 + b)
         if (correct >= 1000 || userAnswer >= 1000) {
