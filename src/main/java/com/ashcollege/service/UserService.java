@@ -26,10 +26,13 @@ public class UserService {
      * רישום משתמש חדש: מקודד את הסיסמה, מגדיר ערכי ברירת־מחדל ושומר.
      */
     public void registerUser(UserEntity user) {
+        String normalizedEmail = user.getMail().trim().toLowerCase();
+
         if (userRepository.existsByMail(user.getMail())) {
             throw new RuntimeException("המייל כבר קיים במערכת");
         }
         // קידוד הסיסמה לפני שמירה
+        user.setMail(normalizedEmail); // ← חשוב לעדכן גם באובייקט
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setLevel(0);
         user.setRole("STUDENT");
@@ -40,7 +43,8 @@ public class UserService {
      * שליפת משתמש לפי מייל.
      */
     public UserEntity findByMail(String mail) {
-        return userRepository.findByMail(mail);
+        if (mail == null) return null;
+        return userRepository.findByMail(mail.trim().toLowerCase());
     }
 
     /**
